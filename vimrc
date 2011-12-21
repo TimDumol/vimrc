@@ -1,6 +1,8 @@
+call pathogen#runtime_append_all_bundles()
+
 syntax on
-colorscheme slate
 set background=dark
+colorscheme solarized
 set ruler                     " show the line number on the bar
 set more                      " use more prompt
 set autoread                  " watch for file changes
@@ -11,13 +13,15 @@ set lazyredraw                " don't redraw when don't have to
 set showmode
 set showcmd
 set nocompatible              " vim, not vi
+
+" Indentation
 set autoindent smartindent    " auto/smart indent
 set smarttab                  " tab and backspace are smart
-set autoindent
 set tabstop=2                 " 6 spaces
 set shiftwidth=2
 set softtabstop=2
 set expandtab
+
 set scrolloff=5               " keep at least 5 lines above/below
 set sidescrolloff=5           " keep at least 5 lines left/right
 set history=200
@@ -29,7 +33,7 @@ set updatecount=100           " switch every 100 chars
 set complete=.,w,b,u,U,t,i,d  " do lots of scanning on tab completion
 set ttyfast                   " we have a fast terminal
 set noerrorbells              " No error bells please
-set shell=powershell
+set shell=bash
 set fileformats=unix
 set ff=unix
 filetype on                   " Enable filetype detection
@@ -43,6 +47,7 @@ set laststatus=2
 "  searching
 set incsearch                 " incremental search
 set ignorecase                " search ignoring case
+set smartcase
 set hlsearch                  " highlight the search
 set showmatch                 " show matching bracket
 set diffopt=filler,iwhite     " ignore all whitespace and sync
@@ -92,8 +97,18 @@ let OmniCpp_DefaultNamespaces = ["std", "_GLIBCXX_STD"]
 au CursorMovedI,InsertLeave * if pumvisible() == 0|silent! pclose|endif
 set completeopt=menuone,menu,longest,preview
 
+" File navigation
+set wildignore+=*.o,*.obj,*.git,*.pyc,*.pyo,*~
+
 " Directory browsing
 let g:netrw_listhide='\^\..*'
+
+" Vim-LaTeX
+set grepprg=grep\ -nH\ $*
+let g:tex_flavor = "latex"
+let g:Tex_CompileRule_dvi = "lualatex --interaction=nonstopmode $*"
+
+set runtimepath=~/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,~/.vim/after
 
 " mappings
 " toggle list mode
@@ -112,7 +127,13 @@ imap <left> <nop>
 imap <right> <nop>
 
 "Quick directory change
-map ,cd :cd %:p:h<CR>:pwd<CR>
+nmap <LocalLeader>cd :cd %:p:h<CR>:pwd<CR>
+
+"Mark column 81
+set colorcolumn=81
+
+"Highlight long lines
+"match ErrorMsg '\%>80v.\+'
 
 "Insert single character
 function! RepeatChar(char, count)
@@ -120,3 +141,12 @@ function! RepeatChar(char, count)
 endfunction
 nnoremap <space> :<C-U>exec "normal i".RepeatChar(nr2char(getchar()), v:count1)<CR>
 
+au BufEnter,BufNewFile *.soy setfiletype html
+
+
+"Write and edit.
+function! WriteEdit(f,bang)
+  execute "write" . a:bang . " " . a:f
+  execute "edit " . a:f
+endfunction
+command! -bang -complete=file -nargs=1 WE :execute ':call WriteEdit(<f-args>,"<bang>")'
